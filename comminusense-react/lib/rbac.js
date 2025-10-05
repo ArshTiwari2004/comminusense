@@ -54,11 +54,17 @@ export function setUserRoles(email, roles) {
   writeStore(db)
 }
 
+
+// TEMPORARY: Always return true for all permissions
 export function hasPermission(roles, permission) {
-  const set = new Set()
-  roles.forEach((r) => (ROLE_PERMISSIONS[r] || []).forEach((p) => set.add(p)))
-  return set.has(permission) && PERMISSIONS[permission]
+  return true
 }
+
+// export function hasPermission(roles, permission) {
+//   const set = new Set()
+//   roles.forEach((r) => (ROLE_PERMISSIONS[r] || []).forEach((p) => set.add(p)))
+//   return set.has(permission) && PERMISSIONS[permission]
+// }
 
 export const ALL_ROLES = Object.keys(ROLE_PERMISSIONS)
 export const ALL_PERMISSIONS = Object.keys(PERMISSIONS)

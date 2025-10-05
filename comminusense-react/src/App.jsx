@@ -1,13 +1,14 @@
-import { Routes, Route, Navigate } from "react-router-dom"
-import Login from "./pages/Login.jsx"
-import Dashboard from "./pages/Dashboard.jsx"
-import Operations from "./pages/Operations.jsx"
-import TwinLab from "./pages/TwinLab.jsx"
-import Maintenance from "./pages/Maintenance.jsx"
-import Scheduling from "./pages/Scheduling.jsx"
-import Admin from "./pages/Admin.jsx"
-import Layout from "./components/Layout.jsx"
-import { ProtectedRoute } from "./components/ProtectedRoute.jsx"
+import { Routes, Route, Navigate } from "react-router-dom";
+import Login from "./pages/Login.jsx";
+import Dashboard from "./pages/Dashboard.jsx";
+import Operations from "./pages/Operations.jsx";
+import TwinLab from "./pages/TwinLab.jsx";
+import Maintenance from "./pages/Maintenance.jsx";
+import Scheduling from "./pages/Scheduling.jsx";
+import Admin from "./pages/Admin.jsx";
+import Layout from "./components/Layout.jsx";
+import { ProtectedRoute } from "./components/ProtectedRoute.jsx";
+import RbacPrint from "./pages/RbacPrint.jsx";
 
 export default function App() {
   return (
@@ -28,8 +29,9 @@ export default function App() {
         <Route path="maintenance" element={<Maintenance />} />
         <Route path="scheduling" element={<Scheduling />} />
         <Route path="admin" element={<Admin />} />
+        <Route path="rbac-print" element={<RbacPrint />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
-  )
+  );
 }
