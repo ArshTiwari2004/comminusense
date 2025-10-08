@@ -8,24 +8,16 @@ export const metadata: Metadata = {
   description: 'Smart comminution - lower kWh/ton, better uptime',
 }
 
-// Initialize DM Sans
 const dmSans = DM_Sans({
   subsets: ['latin'],
   weight: ['400', '500', '700'],
   variable: '--font-dm-sans',
 })
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`font-sans ${dmSans.variable}`}>
-        {children}
-        <Analytics />
-      </body>
+      <body className={`font-sans ${dmSans.variable}`}>{children}<Analytics /></body>
     </html>
   )
 }
