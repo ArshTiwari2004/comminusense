@@ -40,7 +40,7 @@ app.add_middleware(
 )
 
 
-# ---------- Input Schema (Must match the 11 fields required by the model) ----------
+# ---------- Input Schema (CORRECTED to 11 machine-related fields) ----------
 class InputData(BaseModel):
     power_kw: float
     load_tph: float
@@ -65,7 +65,6 @@ def home():
 def predict_energy(data: InputData):
     """
     Predicts efficiency and optimized output based on the 11 input parameters.
-    Returns None for values that are NaN to prevent frontend errors.
     """
     if model is None or rf_model is None:
          return {
@@ -74,11 +73,18 @@ def predict_energy(data: InputData):
             "error": "Models failed to load on server startup."
          }
          
-    # 1. Convert input to numpy array (order must match model training)
+    # 1. Convert input to numpy array (Order must match the 11-field training data)
     input_data = np.array([[
-        data.power_kw, data.load_tph, data.rpm, data.vibration,
-        data.temperature_c, data.ore_grade, data.moisture_pct,
-        data.mill_fill_pct, data.media_size_mm, data.last_15m_power_avg,
+        data.power_kw, 
+        data.load_tph, 
+        data.rpm, 
+        data.vibration,
+        data.temperature_c, 
+        data.ore_grade, 
+        data.moisture_pct,
+        data.mill_fill_pct, 
+        data.media_size_mm, 
+        data.last_15m_power_avg,
         data.last_15m_load_avg
     ]])
 
