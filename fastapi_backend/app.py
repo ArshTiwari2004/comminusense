@@ -17,9 +17,9 @@ app = FastAPI(title="Energy Optimization API")
 # CORS - set allowed origins (in dev ok to use '*', in prod set your frontend URL)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # replace with ["https://your-frontend.vercel.app"] in production
+    allow_origins=["https://comminusense.vercel.app"],  # replace with ["https://your-frontend.vercel.app"] in production
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["http://localhost:3000/"],
     allow_headers=["*"],
 )
 
