@@ -1,94 +1,202 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware  # Import CORS middleware
-from pydantic import BaseModel
-import pickle
-import numpy as np
-import uvicorn
-import logging
+"use client";
+import React, { useState } from "react";
 
-# Set up logging for better error visibility in Render logs
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+// Assuming this component is named EnergyOptimizer and is the default export
+export default function EnergyOptimizer() {
+  // --- UPDATED: State now only includes the 11 fields required by InputData model ---
+  const [form, setForm] = useState({
+    power_kw: 1250.5,
+    load_tph: 55.2,
+    rpm: 315,
+    vibration: 0.02,
+    temperature_c: 78.5,
+    ore_grade: 0.48,
+    moisture_pct: 3.2,
+    mill_fill_pct: 85.0,
+    media_size_mm: 8,
+    last_15m_power_avg: 1230.0,
+    last_15m_load_avg: 54.5,
+    // Removed: humidity_percent, pressure_pa, wind_speed_mps, solar_irradiance_wm2 
+  });
+  
+  // --- UPDATED: This list now exactly matches the 11 fields in your backend InputData model ---
+  const REQUIRED_BACKEND_FIELDS = [
+    'power_kw',
+    'load_tph',
+    'rpm',
+    'vibration',
+    'temperature_c',
+    'ore_grade',
+    'moisture_pct',
+    'mill_fill_pct',
+    'media_size_mm',
+    'last_15m_power_avg',
+    'last_15m_load_avg',
+  ];
 
-# ---------- Load Model ----------
-try:
-    with open("energy_optimization_model.pkl", "rb") as f:
-        model = pickle.load(f)
-    with open("rf_surrogate.pkl", "rb") as f:
-        rf_model = pickle.load(f)
-    logger.info("Models loaded successfully.")
-except Exception as e:
-    logger.error(f"Error loading models: {e}")
-    # Note: If model loading fails, the app might start but fail on /predict
+  // result can hold null, a successful data object, or an error object.
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null); // State to hold fetch or server errors
 
-app = FastAPI()
+  const handleChange = (e) => {
+    // Basic number parsing for inputs
+    let value = e.target.value;
+    if (e.target.type === "number") {
+        value = parseFloat(value);
+    }
+    setForm({ ...form, [e.target.name]: value });
+  };
 
-# ---------- CORS Configuration ----------
-# List of origins (frontend URLs) allowed to make requests
-origins = [
-    "http://localhost:3000",
-    "http://localhost:3001",  # Common local development port
-    "https://comminusense.onrender.com",
-    # Add your deployed Next.js URL here if you deploy the frontend later (e.g., Vercel or other Render service)
-]
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setResult(null);
+    setError(null); // Clear previous errors
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],  # Allows all HTTP methods (POST, GET, etc.)
-    allow_headers=["*"],  # Allows all request headers
-)
-logger.info(f"CORS configured to allow origins: {origins}")
+    // --- FIX: Filter the form data to only include the fields the backend expects ---
+    const requestData = REQUIRED_BACKEND_FIELDS.reduce((acc, key) => {
+      // Ensure the key exists and the value is a number (FastAPI validation)
+      if (form[key] !== undefined && form[key] !== null) {
+        acc[key] = form[key];
+      }
+      return acc;
+    }, {});
+    // --------------------------------------------------------------------------------
 
-# ---------- Input Schema ----------
-class EnergyInput(BaseModel):
-    temperature_c: float
-    humidity_percent: float
-    pressure_pa: float
-    wind_speed_mps: float
-    solar_irradiance_wm2: float
+    try {
+      const res = await fetch("https://comminusense.onrender.com/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestData), // Use the filtered data here
+      });
 
-# ---------- Routes ----------
-@app.get("/")
-def home():
-    """Simple health check endpoint."""
-    return {"message": "Energy Optimization Model API running!"}
+      if (!res.ok) {
+        // Handle HTTP errors (4xx, 5xx), including the 422 error you received.
+        const errorData = await res.json().catch(() => ({ message: res.statusText }));
+        
+        // Improve error logging for 422 validation errors
+        let errorMessage = errorData.detail 
+                           ? `Validation Failed: ${JSON.stringify(errorData.detail)}`
+                           : errorData.message || res.statusText;
 
-@app.post("/predict")
-def predict_energy(data: EnergyInput):
-    """
-    Accepts energy data input and returns predicted efficiency and optimized output.
-    """
-    try:
-        # Convert input to numpy array
-        input_data = np.array([[
-            data.temperature_c, 
-            data.humidity_percent, 
-            data.pressure_pa,
-            data.wind_speed_mps, 
-            data.solar_irradiance_wm2
-        ]])
+        throw new Error(`API Error ${res.status}: ${errorMessage}`);
+      }
 
-        # Predict efficiency or energy output
-        # Ensure models are loaded before prediction
-        if 'model' in locals() and 'rf_model' in locals():
-            efficiency = model.predict(input_data)[0]
-            optimized_output = rf_model.predict(input_data)[0]
-        else:
-            logger.error("Attempted prediction but models were not loaded.")
-            return {"error": "Models failed to load during startup."}, 500
+      const data = await res.json();
+      setResult(data);
+      
+    } catch (err) {
+      console.error("Fetch failed:", err);
+      setError(err.message || "An unknown error occurred during prediction.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="p-8 bg-gray-50 min-h-screen">
+      <h1 className="text-2xl font-bold mb-6 text-emerald-800">
+        ⚙️ Energy Optimization Predictor
+      </h1>
+
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 bg-white p-6 rounded-xl shadow-lg">
+        {/* Renders the 11 fields from the new form state */}
+        {Object.keys(form).map((key) => (
+          <div key={key} className="flex flex-col">
+            <label className="block text-sm font-medium text-gray-700 capitalize">
+                {key.replace(/_/g, ' ')}
+            </label>
+            <input
+              type="number"
+              step="any"
+              name={key}
+              value={form[key]}
+              onChange={handleChange}
+              className="mt-1 w-full border border-gray-300 rounded-md p-2 focus:ring-emerald-500 focus:border-emerald-500 transition duration-150"
+            />
+          </div>
+        ))}
+        <button
+          type="submit"
+          disabled={loading}
+          className="col-span-1 md:col-span-2 lg:col-span-3 bg-emerald-700 text-white p-3 rounded-lg hover:bg-emerald-800 transition duration-150 shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed"
+        >
+          {loading ? "Predicting..." : "Run Prediction"}
+        </button>
+      </form>
+
+      {/* Display General Error Message */}
+      {error && (
+        <div className="mt-6 p-4 bg-red-100 text-red-700 border border-red-400 rounded-lg shadow-md">
+          <p className="font-semibold">Prediction Failed:</p>
+          <p>{error}</p>
+        </div>
+      )}
+
+      {/* Display Results or Loading Spinner */}
+      {result && (
+        <div className="mt-6 bg-white p-6 rounded-xl shadow-lg border-t-4 border-emerald-500">
+          <h2 className="text-2xl font-bold text-emerald-700 mb-4">Results Summary</h2>
+          
+          {/* Displaying simple predicted values (Always show if result exists) */}
+          <div className="grid grid-cols-2 gap-4 border-b pb-4 mb-4">
+             <p>
+                 <b>Predicted Efficiency:</b> 
+                 <span className="text-emerald-600 font-bold">
+                    {result.predicted_efficiency !== undefined 
+                        ? result.predicted_efficiency.toFixed(4) 
+                        : 'N/A'}
+                 </span>
+             </p>
+             <p>
+                 <b>Optimized Output:</b> 
+                 <span className="text-emerald-600 font-bold">
+                    {result.optimized_output !== undefined 
+                        ? result.optimized_output.toFixed(4) 
+                        : 'N/A'}
+                 </span>
+             </p>
+          </div>
+          {/* END of prediction block change */}
 
 
-        return {
-            "predicted_efficiency": float(efficiency),
-            "optimized_output": float(optimized_output)
-        }
-    except Exception as e:
-        logger.error(f"Error during prediction: {e}")
-        return {"error": str(e)}, 500
+          {/* Conditional Rendering for Recommendations */}
+          {result.recommendations?.length > 0 && ( // Check if array exists and has elements
+            <>
+              <h3 className="mt-4 font-semibold text-gray-800">Recommendations:</h3>
+              <ul className="list-disc pl-5 space-y-1 mt-2">
+                {result.recommendations.map((r, i) => (
+                  <li key={i} className="text-sm text-gray-600">
+                    {r.param}: {r.from} → {r.to} (Δ {r.expected_delta_kwh_per_ton})
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
 
-# ---------- Run the App (Only for Local Development) ----------
-# Render ignores this block and uses the Start Command specified in the dashboard
-if __name__ == "__main__":
-    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
+          {/* Conditional Rendering for Explainability */}
+          {result.explainability?.length > 0 && ( // Check if array exists and has elements
+            <>
+              <h3 className="mt-4 font-semibold text-gray-800">Explainability:</h3>
+              <ul className="list-disc pl-5 space-y-1 mt-2">
+                {result.explainability.map((e, i) => (
+                  <li key={i} className="text-sm text-gray-600">
+                    {e.feature}: impact {e.impact}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+
+          {/* Fallback for the simple prediction object */}
+          {(!result.recommendations || result.recommendations.length === 0) && 
+           (!result.explainability || result.explainability.length === 0) && (
+              <p className="text-gray-500 italic mt-4">Note: The backend returned a simple prediction. Full analysis data (recommendations/explainability) is currently unavailable.</p>
+          )}
+
+        </div>
+      )}
+    </div>
+  );
+}
