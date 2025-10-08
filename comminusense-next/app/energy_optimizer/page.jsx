@@ -1,106 +1,71 @@
 "use client";
-import React, { useState } from "react";
+import { useState } from "react";
 
-// Assuming this component is named EnergyOptimizer and is the default export
 export default function EnergyOptimizer() {
   const [form, setForm] = useState({
-    power_kw: 1250.5,
-    load_tph: 55.2,
-    rpm: 315,
-    vibration: 0.02,
-    temperature_c: 78.5,
-    humidity_percent: 65.0, // <-- Added humidity and pressure for required fields
-    pressure_pa: 101325.0,   // <-- Assuming standard values for testing
-    ore_grade: 0.48,
-    moisture_pct: 3.2,
-    mill_fill_pct: 85.0,
-    media_size_mm: 8,
-    last_15m_power_avg: 1230.0,
-    last_15m_load_avg: 54.5,
-    wind_speed_mps: 5.0,     // <-- Added wind_speed and solar_irradiance
-    solar_irradiance_wm2: 500.0,
+    power_kw: "",
+    load_tph: "",
+    rpm: "",
+    vibration: "",
+    temperature_c: "",
+    ore_grade: "",
+    moisture_pct: "",
+    mill_fill_pct: "",
+    media_size_mm: "",
+    last_15m_power_avg: "",
+    last_15m_load_avg: "",
   });
-  
-  // Define the fields required by the FastAPI EnergyInput model
-  const REQUIRED_BACKEND_FIELDS = [
-    'temperature_c', 
-    'humidity_percent', 
-    'pressure_pa', 
-    'wind_speed_mps', 
-    'solar_irradiance_wm2'
-  ];
 
-  // result can hold null, a successful data object, or an error object.
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null); // State to hold fetch or server errors
+  const [error, setError] = useState(null);
 
   const handleChange = (e) => {
-    // Basic number parsing for inputs
-    let value = e.target.value;
-    if (e.target.type === "number") {
-        value = parseFloat(value);
-    }
-    setForm({ ...form, [e.target.name]: value });
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
     setResult(null);
-    setError(null); // Clear previous errors
-
-    // --- FIX: Filter the form data to only include the fields the backend expects ---
-    const requestData = REQUIRED_BACKEND_FIELDS.reduce((acc, key) => {
-      // Ensure the key exists and the value is a number (FastAPI validation)
-      if (form[key] !== undefined && form[key] !== null) {
-        acc[key] = form[key];
-      }
-      return acc;
-    }, {});
-    // --------------------------------------------------------------------------------
 
     try {
-      const res = await fetch("https://comminusense.onrender.com/predict", {
+      const res = await fetch("http://127.0.0.1:8000/predict", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestData), // Use the filtered data here
+        body: JSON.stringify(
+          Object.fromEntries(
+            Object.entries(form).map(([k, v]) => [k, parseFloat(v)])
+          )
+        ),
       });
 
-      if (!res.ok) {
-        // Handle HTTP errors (4xx, 5xx), including the 422 error you received.
-        const errorData = await res.json().catch(() => ({ message: res.statusText }));
-        
-        // Improve error logging for 422 validation errors
-        let errorMessage = errorData.detail 
-                           ? `Validation Failed: ${JSON.stringify(errorData.detail)}`
-                           : errorData.message || res.statusText;
-
-        throw new Error(`API Error ${res.status}: ${errorMessage}`);
-      }
+      if (!res.ok) throw new Error("Failed to fetch results");
 
       const data = await res.json();
       setResult(data);
-      
     } catch (err) {
-      console.error("Fetch failed:", err);
-      setError(err.message || "An unknown error occurred during prediction.");
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="p-8 bg-gray-50 min-h-screen">
-      <h1 className="text-2xl font-bold mb-6 text-emerald-800">
-        ⚙️ Energy Optimization Predictor
+    <div className="min-h-screen bg-emerald-50 flex flex-col items-center justify-center p-8">
+      <h1 className="text-3xl font-bold text-emerald-800 mb-6">
+        ⚡ Energy Optimization Predictor
       </h1>
 
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 bg-white p-6 rounded-xl shadow-lg">
+      <form
+        onSubmit={handleSubmit}
+        className="grid grid-cols-2 gap-4 bg-white shadow-lg p-6 rounded-2xl max-w-3xl"
+      >
         {Object.keys(form).map((key) => (
           <div key={key} className="flex flex-col">
-            <label className="block text-sm font-medium text-gray-700 capitalize">
-                {key.replace(/_/g, ' ')}
+            <label className="font-medium text-emerald-700 capitalize">
+              {key.replace(/_/g, " ")}
             </label>
             <input
               type="number"
@@ -108,89 +73,58 @@ export default function EnergyOptimizer() {
               name={key}
               value={form[key]}
               onChange={handleChange}
-              className="mt-1 w-full border border-gray-300 rounded-md p-2 focus:ring-emerald-500 focus:border-emerald-500 transition duration-150"
+              required
+              className="border border-emerald-300 rounded-md p-2 mt-1 focus:outline-none focus:ring-2 focus:ring-emerald-400"
             />
           </div>
         ))}
         <button
           type="submit"
           disabled={loading}
-          className="col-span-1 md:col-span-2 lg:col-span-3 bg-emerald-700 text-white p-3 rounded-lg hover:bg-emerald-800 transition duration-150 shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed"
+          className="col-span-2 mt-4 bg-emerald-700 text-white py-2 rounded-md hover:bg-emerald-800 transition"
         >
-          {loading ? "Predicting..." : "Run Prediction"}
+          {loading ? "Predicting..." : "Predict Energy Usage"}
         </button>
       </form>
 
-      {/* Display General Error Message */}
       {error && (
-        <div className="mt-6 p-4 bg-red-100 text-red-700 border border-red-400 rounded-lg shadow-md">
-          <p className="font-semibold">Prediction Failed:</p>
-          <p>{error}</p>
-        </div>
+        <p className="text-red-600 mt-4 bg-red-100 p-2 rounded">{error}</p>
       )}
 
-      {/* Display Results or Loading Spinner */}
       {result && (
-        <div className="mt-6 bg-white p-6 rounded-xl shadow-lg border-t-4 border-emerald-500">
-          <h2 className="text-2xl font-bold text-emerald-700 mb-4">Results Summary</h2>
-          
-          {/* Displaying simple predicted values (Always show if result exists) */}
-          {/* REMOVED: (result.predicted_efficiency || result.optimized_output) && (...) */}
-          <div className="grid grid-cols-2 gap-4 border-b pb-4 mb-4">
-             <p>
-                 <b>Predicted Efficiency:</b> 
-                 <span className="text-emerald-600 font-bold">
-                    {result.predicted_efficiency !== undefined 
-                        ? result.predicted_efficiency.toFixed(4) 
-                        : 'N/A'}
-                 </span>
-             </p>
-             <p>
-                 <b>Optimized Output:</b> 
-                 <span className="text-emerald-600 font-bold">
-                    {result.optimized_output !== undefined 
-                        ? result.optimized_output.toFixed(4) 
-                        : 'N/A'}
-                 </span>
-             </p>
-          </div>
-          {/* END of prediction block change */}
+        <div className="mt-8 bg-white p-6 rounded-2xl shadow-lg w-full max-w-2xl">
+          <h2 className="text-xl font-semibold text-emerald-800 mb-3">
+            Results
+          </h2>
+          <p>
+            <b>Current kWh/ton:</b> {result.current_kwh_per_ton}
+          </p>
+          <p>
+            <b>Predicted kWh/ton:</b> {result.predicted_kwh_per_ton}
+          </p>
 
+          <h3 className="text-lg mt-4 font-medium text-emerald-700">
+            Recommendations:
+          </h3>
+          <ul className="list-disc pl-6">
+            {result.recommendations.map((rec, i) => (
+              <li key={i}>
+                Change <b>{rec.param}</b> from <b>{rec.from}</b> to{" "}
+                <b>{rec.to}</b> (Δ {rec.expected_delta_kwh_per_ton} kWh/ton)
+              </li>
+            ))}
+          </ul>
 
-          {/* Conditional Rendering for Recommendations */}
-          {result.recommendations?.length > 0 && ( // Check if array exists and has elements
-            <>
-              <h3 className="mt-4 font-semibold text-gray-800">Recommendations:</h3>
-              <ul className="list-disc pl-5 space-y-1 mt-2">
-                {result.recommendations.map((r, i) => (
-                  <li key={i} className="text-sm text-gray-600">
-                    {r.param}: {r.from} → {r.to} (Δ {r.expected_delta_kwh_per_ton})
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-
-          {/* Conditional Rendering for Explainability */}
-          {result.explainability?.length > 0 && ( // Check if array exists and has elements
-            <>
-              <h3 className="mt-4 font-semibold text-gray-800">Explainability:</h3>
-              <ul className="list-disc pl-5 space-y-1 mt-2">
-                {result.explainability.map((e, i) => (
-                  <li key={i} className="text-sm text-gray-600">
-                    {e.feature}: impact {e.impact}
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-
-          {/* Fallback for the simple prediction object */}
-          {(!result.recommendations || result.recommendations.length === 0) && 
-           (!result.explainability || result.explainability.length === 0) && (
-              <p className="text-gray-500 italic mt-4">Note: The backend returned a simple prediction. Full analysis data (recommendations/explainability) is currently unavailable.</p>
-          )}
-
+          <h3 className="text-lg mt-4 font-medium text-emerald-700">
+            Explainability:
+          </h3>
+          <ul className="list-disc pl-6">
+            {result.explainability.map((exp, i) => (
+              <li key={i}>
+                {exp.feature}: value {exp.value}, impact {exp.impact}
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </div>
