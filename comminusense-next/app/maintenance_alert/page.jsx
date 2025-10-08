@@ -4,12 +4,12 @@ import { useState } from "react";
 
 export default function MaintenanceAlert() {
   const [form, setForm] = useState({
-    vibration: "",
-    temperature_c: "",
-    rpm: "",
-    power_kw: "",
-    age_hours: "",
-    historical_failures: "",
+    vibration: "0.02",
+    temperature_c: "78.5",
+    rpm: "315",
+    power_kw: "1250.5",
+    age_hours: "1245",
+    historical_failures: "2",
   });
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
