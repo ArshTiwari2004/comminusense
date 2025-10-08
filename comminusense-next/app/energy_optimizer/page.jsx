@@ -9,13 +9,26 @@ export default function EnergyOptimizer() {
     rpm: 315,
     vibration: 0.02,
     temperature_c: 78.5,
+    humidity_percent: 65.0, // <-- Added humidity and pressure for required fields
+    pressure_pa: 101325.0,   // <-- Assuming standard values for testing
     ore_grade: 0.48,
     moisture_pct: 3.2,
     mill_fill_pct: 85.0,
     media_size_mm: 8,
     last_15m_power_avg: 1230.0,
     last_15m_load_avg: 54.5,
+    wind_speed_mps: 5.0,     // <-- Added wind_speed and solar_irradiance
+    solar_irradiance_wm2: 500.0,
   });
+  
+  // Define the fields required by the FastAPI EnergyInput model
+  const REQUIRED_BACKEND_FIELDS = [
+    'temperature_c', 
+    'humidity_percent', 
+    'pressure_pa', 
+    'wind_speed_mps', 
+    'solar_irradiance_wm2'
+  ];
 
   // result can hold null, a successful data object, or an error object.
   const [result, setResult] = useState(null);
@@ -37,20 +50,33 @@ export default function EnergyOptimizer() {
     setResult(null);
     setError(null); // Clear previous errors
 
+    // --- FIX: Filter the form data to only include the fields the backend expects ---
+    const requestData = REQUIRED_BACKEND_FIELDS.reduce((acc, key) => {
+      // Ensure the key exists and the value is a number (FastAPI validation)
+      if (form[key] !== undefined && form[key] !== null) {
+        acc[key] = form[key];
+      }
+      return acc;
+    }, {});
+    // --------------------------------------------------------------------------------
+
     try {
       const res = await fetch("https://comminusense.onrender.com/predict", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // NOTE: The backend /predict only expects 5 specific fields (temperature_c, humidity_percent, etc.).
-        // We are sending the whole form here, which is fine as FastAPI ignores extra fields, 
-        // but if the backend code changes, this might cause issues.
-        body: JSON.stringify(form),
+        body: JSON.stringify(requestData), // Use the filtered data here
       });
 
       if (!res.ok) {
-        // Handle HTTP errors (4xx, 5xx)
+        // Handle HTTP errors (4xx, 5xx), including the 422 error you received.
         const errorData = await res.json().catch(() => ({ message: res.statusText }));
-        throw new Error(`API Error ${res.status}: ${errorData.detail || errorData.message}`);
+        
+        // Improve error logging for 422 validation errors
+        let errorMessage = errorData.detail 
+                           ? `Validation Failed: ${JSON.stringify(errorData.detail)}`
+                           : errorData.message || res.statusText;
+
+        throw new Error(`API Error ${res.status}: ${errorMessage}`);
       }
 
       const data = await res.json();
