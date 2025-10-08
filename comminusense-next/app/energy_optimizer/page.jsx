@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 
 export default function PredictPage() {
@@ -29,8 +31,16 @@ export default function PredictPage() {
     setError("");
     setResult(null);
 
+    // Client-side validation to ensure all fields are filled and are numeric
+    const formValues = Object.values(form);
+    if (formValues.some(val => val === "" || isNaN(parseFloat(val)))) {
+        setError("All fields are required and must be valid numbers.");
+        setLoading(false);
+        return;
+    }
+
     try {
-      const res = await fetch("https://your-fastapi-backend.onrender.com/predict", {
+      const res = await fetch("https://comminusense.onrender.com/predict", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
@@ -40,12 +50,20 @@ export default function PredictPage() {
         ),
       });
 
-      if (!res.ok) throw new Error("API request failed");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ detail: `API request failed with status: ${res.status}` }));
+        throw new Error(errorData.detail || "An unknown error occurred.");
+      }
       const data = await res.json();
       setResult(data);
     } catch (err) {
       console.error(err);
-      setError("Failed to get prediction. Please try again later.");
+      // Provide a more helpful error message for fetch failures
+      if (err instanceof TypeError && err.message === 'Failed to fetch') {
+          setError("Could not connect to the prediction service. The server may be down or there could be a network (CORS) issue. Please check the server status.");
+      } else {
+          setError(err.message || "Failed to get prediction. Please try again later.");
+      }
     } finally {
       setLoading(false);
     }
@@ -83,7 +101,7 @@ export default function PredictPage() {
           <button
             type="submit"
             disabled={loading}
-            className="md:col-span-2 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3 rounded-lg shadow-md transition-all duration-200"
+            className="md:col-span-2 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3 rounded-lg shadow-md transition-all duration-200 disabled:bg-gray-500 disabled:cursor-not-allowed"
           >
             {loading ? "Predicting..." : "Predict Energy Usage"}
           </button>
@@ -91,7 +109,7 @@ export default function PredictPage() {
 
         {/* Error Message */}
         {error && (
-          <div className="text-center text-red-400 font-semibold">{error}</div>
+          <div className="text-center text-red-400 font-semibold p-4 bg-red-900/50 rounded-lg">{error}</div>
         )}
 
         {/* Results Section */}
@@ -118,6 +136,7 @@ export default function PredictPage() {
             </div>
 
             {/* Recommendations */}
+            {result.recommendations && result.recommendations.length > 0 && (
             <div>
               <h3 className="text-lg font-semibold mb-3 text-emerald-200">
                 ⚙️ Optimization Recommendations
@@ -138,8 +157,10 @@ export default function PredictPage() {
                 ))}
               </div>
             </div>
+            )}
 
             {/* Explainability */}
+            {result.explainability && result.explainability.length > 0 && (
             <div>
               <h3 className="text-lg font-semibold mb-3 text-emerald-200">
                 🧠 Feature Importance
@@ -159,7 +180,7 @@ export default function PredictPage() {
                         key={i}
                         className="border-t border-emerald-700 hover:bg-emerald-700/30 transition"
                       >
-                        <td className="p-2 capitalize">{f.feature}</td>
+                        <td className="p-2 capitalize">{f.feature.replaceAll('_', ' ')}</td>
                         <td className="p-2">{f.value}</td>
                         <td className="p-2 text-emerald-300">
                           {f.impact.toFixed(3)}
@@ -170,9 +191,11 @@ export default function PredictPage() {
                 </table>
               </div>
             </div>
+            )}
           </div>
         )}
       </div>
     </div>
   );
 }
+
