@@ -4,17 +4,17 @@ import { useState } from "react";
 
 export default function PredictPage() {
   const [form, setForm] = useState({
-    power_kw: "",
-    load_tph: "",
-    rpm: "",
-    vibration: "",
-    temperature_c: "",
-    ore_grade: "",
-    moisture_pct: "",
-    mill_fill_pct: "",
-    media_size_mm: "",
-    last_15m_power_avg: "",
-    last_15m_load_avg: "",
+    power_kw: "1250.5",
+    load_tph: "55.2",
+    rpm: "315",
+    vibration: "0.02",
+    temperature_c: "78.5",
+    ore_grade: "0.48",
+    moisture_pct: "3.2",
+    mill_fill_pct: "85.0",
+    media_size_mm: "8",
+    last_15m_power_avg: "1230.0",
+    last_15m_load_avg: "54.5",
   });
 
   const [loading, setLoading] = useState(false);
