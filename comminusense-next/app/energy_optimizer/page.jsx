@@ -134,13 +134,28 @@ export default function EnergyOptimizer() {
         <div className="mt-6 bg-white p-6 rounded-xl shadow-lg border-t-4 border-emerald-500">
           <h2 className="text-2xl font-bold text-emerald-700 mb-4">Results Summary</h2>
           
-          {/* Displaying simple predicted values */}
-          {(result.predicted_efficiency || result.optimized_output) && (
-             <div className="grid grid-cols-2 gap-4 border-b pb-4 mb-4">
-                <p><b>Predicted Efficiency:</b> <span className="text-emerald-600 font-bold">{result.predicted_efficiency?.toFixed(4) || 'N/A'}</span></p>
-                <p><b>Optimized Output:</b> <span className="text-emerald-600 font-bold">{result.optimized_output?.toFixed(4) || 'N/A'}</span></p>
-            </div>
-          )}
+          {/* Displaying simple predicted values (Always show if result exists) */}
+          {/* REMOVED: (result.predicted_efficiency || result.optimized_output) && (...) */}
+          <div className="grid grid-cols-2 gap-4 border-b pb-4 mb-4">
+             <p>
+                 <b>Predicted Efficiency:</b> 
+                 <span className="text-emerald-600 font-bold">
+                    {result.predicted_efficiency !== undefined 
+                        ? result.predicted_efficiency.toFixed(4) 
+                        : 'N/A'}
+                 </span>
+             </p>
+             <p>
+                 <b>Optimized Output:</b> 
+                 <span className="text-emerald-600 font-bold">
+                    {result.optimized_output !== undefined 
+                        ? result.optimized_output.toFixed(4) 
+                        : 'N/A'}
+                 </span>
+             </p>
+          </div>
+          {/* END of prediction block change */}
+
 
           {/* Conditional Rendering for Recommendations */}
           {result.recommendations?.length > 0 && ( // Check if array exists and has elements
@@ -171,7 +186,8 @@ export default function EnergyOptimizer() {
           )}
 
           {/* Fallback for the simple prediction object */}
-          {!result.recommendations && !result.explainability && (
+          {(!result.recommendations || result.recommendations.length === 0) && 
+           (!result.explainability || result.explainability.length === 0) && (
               <p className="text-gray-500 italic mt-4">Note: The backend returned a simple prediction. Full analysis data (recommendations/explainability) is currently unavailable.</p>
           )}
 
