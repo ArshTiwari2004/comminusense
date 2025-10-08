@@ -5,7 +5,7 @@ from pydantic import BaseModel
 import joblib
 import numpy as np
 import os
-
+from maintenance_model.router import router as maintenance_router
 # --- Load models ---
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "energy_optimization_model.pkl")
 RF_PATH = os.path.join(os.path.dirname(__file__), "rf_surrogate.pkl")
@@ -26,6 +26,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# --- Include Routers ---
+app.include_router(maintenance_router)
 
 # --- Input Schema ---
 class InputData(BaseModel):
