@@ -76,7 +76,7 @@ export default function MaintenanceAlert() {
         overlayData = { color: "green", level: data.alert_level };
       } else if (alertLevel.includes("warning")) {
         overlayData = { color: "orange", level: data.alert_level };
-      } else if (alertLevel.includes("alert")) {
+      } else if (alertLevel.includes("critical")) {
         overlayData = { color: "red", level: data.alert_level };
       }
       
