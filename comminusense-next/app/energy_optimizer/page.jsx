@@ -1,5 +1,7 @@
 "use client";
-
+import Sidebar from "@/components/layout/sidebar"
+import Topbar from "@/components/layout/topbar"
+import { RequireAuth } from "@/hooks/use-auth"
 import { useState } from "react";
 
 export default function PredictPage() {

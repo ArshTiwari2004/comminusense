@@ -1,5 +1,7 @@
 "use client";
-
+import Sidebar from "@/components/layout/sidebar"
+import Topbar from "@/components/layout/topbar"
+import { RequireAuth } from "@/hooks/use-auth"
 import { useState } from "react";
 
 // SVG Icons for different alert levels for a richer UI
