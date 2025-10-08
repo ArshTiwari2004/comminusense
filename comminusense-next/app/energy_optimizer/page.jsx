@@ -28,7 +28,7 @@ export default function EnergyOptimizer() {
     setLoading(true);
     setResult(null);
 
-    const res = await fetch("https://comminusense.onrender.com", {
+    const res = await fetch("https://comminusense.onrender.com/predict", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
