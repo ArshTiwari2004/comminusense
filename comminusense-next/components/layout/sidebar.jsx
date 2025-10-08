@@ -28,6 +28,18 @@ const links = [
   { href: "/reports", label: "Reports", icon: Settings, perm: "report.export" },
   { href: "/admin", label: "Admin", icon: Users, perm: "user.manage" },
   { href: "/rbac-print", label: "RBAC", icon: Users, perm: "user.manage" },
+  {
+    href: "/maintenance_alert",
+    label: "Maintenance Alert",
+    icon: Activity,
+    perm: "maintenance.create",
+  },
+  {
+    href: "/energy_optimizer",
+    label: "Energy Optimization",
+    icon: Cpu,
+    perm: "simulation.run",
+  },
 ];
 
 export default function Sidebar() {
