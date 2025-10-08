@@ -18,8 +18,9 @@ app = FastAPI(title="Energy Optimization API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["https://comminusense.vercel.app"],  # replace with ["https://your-frontend.vercel.app"] in production
-    allow_credentials=True,
-    allow_methods=["http://localhost:3000/"],
+     allow_origins=["http://localhost:3000"],
+     allow_credentials=True,
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
