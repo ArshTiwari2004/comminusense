@@ -1,7 +1,6 @@
 "use client";
-import Sidebar from "@/components/layout/sidebar"
-import Topbar from "@/components/layout/topbar"
-import { RequireAuth } from "@/hooks/use-auth"
+import Sidebar from "@/components/layout/sidebar";
+import Topbar from "@/components/layout/topbar";
 import { useState } from "react";
 
 // SVG Icons for different alert levels for a richer UI
@@ -106,87 +105,93 @@ export default function MaintenanceAlert() {
   };
 
   return (
-    <>
-      {/* --- UI ENHANCEMENT: Full Screen Overlay --- */}
-      {overlay && (
-        <div className={`fixed inset-0 z-50 flex flex-col items-center justify-center text-white transition-opacity duration-300 ${overlayStyles[overlay.color]}`}>
-          {overlay.color === 'green' && Icons.normal}
-          {overlay.color === 'orange' && Icons.warning}
-          {overlay.color === 'red' && Icons.alert}
-          <h2 className="mt-4 text-5xl font-bold uppercase tracking-wider">
-            {overlay.level}
-          </h2>
-        </div>
-      )}
-
-      <div className="max-w-3xl mx-auto p-6 md:p-8 bg-slate-50 rounded-lg shadow-md mt-10">
-        <h1 className="text-3xl font-bold mb-6 text-gray-800 border-b pb-3">
-          Predictive Maintenance Alert
-        </h1>
-
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {Object.keys(form).map((key) => (
-            <div key={key}>
-              <label className="block text-sm font-medium text-gray-700 mb-1 capitalize">
-                {key.replace(/_/g, " ")}
-              </label>
-              <input
-                type="number"
-                step="any"
-                name={key}
-                value={form[key]}
-                onChange={handleChange}
-                className="w-full border-gray-300 px-3 py-2 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500 transition"
-                required
-              />
+    <div className="flex min-h-screen">
+      <Sidebar />
+      <div className="flex-1 flex flex-col">
+        <Topbar />
+        <main className="flex-1">
+          {/* --- UI ENHANCEMENT: Full Screen Overlay --- */}
+          {overlay && (
+            <div className={`fixed inset-0 z-50 flex flex-col items-center justify-center text-white transition-opacity duration-300 ${overlayStyles[overlay.color]}`}>
+              {overlay.color === 'green' && Icons.normal}
+              {overlay.color === 'orange' && Icons.warning}
+              {overlay.color === 'red' && Icons.alert}
+              <h2 className="mt-4 text-5xl font-bold uppercase tracking-wider">
+                {overlay.level}
+              </h2>
             </div>
-          ))}
-          <div className="md:col-span-2">
-            <button
-              type="submit"
-              className="w-full bg-emerald-700 text-white px-6 py-3 rounded-md hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 font-semibold transition-transform transform hover:scale-105 disabled:bg-gray-400 disabled:scale-100"
-              disabled={loading}
-            >
-              {loading ? "Analyzing Data..." : "Predict Maintenance Status"}
-            </button>
-          </div>
-        </form>
+          )}
 
-        {error && <p className="mt-6 text-center font-semibold text-red-600 bg-red-100 p-3 rounded-md">{error}</p>}
+          <div className="max-w-3xl mx-auto p-6 md:p-8 bg-slate-50 rounded-lg shadow-md mt-10">
+            <h1 className="text-3xl font-bold mb-6 text-gray-800 border-b pb-3">
+              Predictive Maintenance Alert
+            </h1>
 
-        {result && (
-          <div className="mt-8 p-6 border-l-4 rounded-r-lg shadow-sm" style={{ borderColor: result.status_color }}>
-            <h2 className="text-2xl font-bold mb-3 text-gray-800">Prediction Result</h2>
-            <div className="space-y-3">
-              <p className="text-lg">
-                <strong>Alert Level:</strong>{" "}
-                <span className="font-bold px-3 py-1 rounded-full text-white" style={{ backgroundColor: result.status_color }}>
-                  {result.alert_level}
-                </span>
-              </p>
-              <p className="text-lg">
-                <strong>Risk Score:</strong>
-                <span className="font-semibold text-gray-700"> {result.maintenance_risk_score}</span>
-              </p>
-              <p className="text-lg">
-                <strong>Primary Action:</strong>
-                <span className="font-semibold text-gray-700"> {result.primary_action}</span>
-              </p>
-
-              <div className="pt-3">
-                <h3 className="text-xl font-semibold text-gray-800">Recommendations:</h3>
-                <ul className="list-disc list-inside mt-2 space-y-1 text-gray-600">
-                  {result.recommendations.map((rec, idx) => (
-                    <li key={idx}>
-                      <strong className="capitalize text-gray-700">{rec.param.replace(/_/g, " ")}:</strong> {rec.value} → <span className="font-medium text-emerald-700">{rec.suggestion}</span>
-                    </li>
-                  ))}
-                </ul>
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {Object.keys(form).map((key) => (
+                <div key={key}>
+                  <label className="block text-sm font-medium text-gray-700 mb-1 capitalize">
+                    {key.replace(/_/g, " ")}
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    name={key}
+                    value={form[key]}
+                    onChange={handleChange}
+                    className="w-full border-gray-300 px-3 py-2 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500 transition"
+                    required
+                  />
+                </div>
+              ))}
+              <div className="md:col-span-2">
+                <button
+                  type="submit"
+                  className="w-full bg-emerald-700 text-white px-6 py-3 rounded-md hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 font-semibold transition-transform transform hover:scale-105 disabled:bg-gray-400 disabled:scale-100"
+                  disabled={loading}
+                >
+                  {loading ? "Analyzing Data..." : "Predict Maintenance Status"}
+                </button>
               </div>
-            </div>
+            </form>
+
+            {error && <p className="mt-6 text-center font-semibold text-red-600 bg-red-100 p-3 rounded-md">{error}</p>}
+
+            {result && (
+              <div className="mt-8 p-6 border-l-4 rounded-r-lg shadow-sm" style={{ borderColor: result.status_color }}>
+                <h2 className="text-2xl font-bold mb-3 text-gray-800">Prediction Result</h2>
+                <div className="space-y-3">
+                  <p className="text-lg">
+                    <strong>Alert Level:</strong>{" "}
+                    <span className="font-bold px-3 py-1 rounded-full text-white" style={{ backgroundColor: result.status_color }}>
+                      {result.alert_level}
+                    </span>
+                  </p>
+                  <p className="text-lg">
+                    <strong>Risk Score:</strong>
+                    <span className="font-semibold text-gray-700"> {result.maintenance_risk_score}</span>
+                  </p>
+                  <p className="text-lg">
+                    <strong>Primary Action:</strong>
+                    <span className="font-semibold text-gray-700"> {result.primary_action}</span>
+                  </p>
+
+                  <div className="pt-3">
+                    <h3 className="text-xl font-semibold text-gray-800">Recommendations:</h3>
+                    <ul className="list-disc list-inside mt-2 space-y-1 text-gray-600">
+                      {result.recommendations.map((rec, idx) => (
+                        <li key={idx}>
+                          <strong className="capitalize text-gray-700">{rec.param.replace(/_/g, " ")}:</strong> {rec.value} → <span className="font-medium text-emerald-700">{rec.suggestion}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-        )}
+        </main>
       </div>
-    </>
+    </div>
   );
 }
