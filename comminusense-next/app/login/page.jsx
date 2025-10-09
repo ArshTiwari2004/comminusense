@@ -16,7 +16,7 @@ export default function LoginPage() {
     setError(null);
     try {
       await signInWithEmail(email, password);
-      window.location.href = "/";
+      window.location.href = "/select-role";
     } catch (err) {
       setError(err.message);
     } finally {
@@ -29,7 +29,7 @@ export default function LoginPage() {
     setError(null);
     try {
       await signInWithGoogle();
-      window.location.href = "/";
+      window.location.href = "/select-role";
     } catch (err) {
       setError(err.message);
       setLoading(false);

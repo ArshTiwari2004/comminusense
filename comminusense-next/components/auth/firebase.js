@@ -9,6 +9,7 @@ import {
   signInWithPopup,
   signOut as fbSignOut,
 } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 
 // ✅ Firebase configuration
 const firebaseConfig = {
@@ -30,8 +31,9 @@ if (typeof window !== "undefined") {
   analytics = getAnalytics(app);
 }
 
-// ✅ Initialize Auth
+// ✅ Initialize Auth and Firestore
 export const auth = getAuth(app);
+export const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 
 // ✅ Authentication functions
