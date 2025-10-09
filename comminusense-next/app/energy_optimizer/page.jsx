@@ -3,11 +3,15 @@ import Sidebar from "@/components/layout/sidebar";
 import Topbar from "@/components/layout/topbar";
 import { useState } from "react";
 
-// Helper component for stat cards to keep the main component cleaner
+// Helper component for stat cards
 const StatCard = ({ title, value, highlight = false }) => (
-  <div className="bg-slate-100 p-4 rounded-lg shadow-sm text-center">
-    <h3 className="text-sm text-gray-500 font-medium">{title}</h3>
-    <p className={`text-3xl font-bold ${highlight ? 'text-emerald-600' : 'text-gray-800'}`}>
+  <div className="bg-white p-4 rounded-md border border-gray-300 text-center">
+    <h3 className="text-sm text-gray-600 font-medium">{title}</h3>
+    <p
+      className={`text-3xl font-bold ${
+        highlight ? "text-emerald-500" : "text-gray-800"
+      }`}
+    >
       {value}
     </p>
   </div>
@@ -42,7 +46,6 @@ export default function PredictPage() {
     setError("");
     setResult(null);
 
-    // Client-side validation
     const formValues = Object.values(form);
     if (formValues.some((val) => val === "" || isNaN(parseFloat(val)))) {
       setError("All fields are required and must be valid numbers.");
@@ -73,10 +76,12 @@ export default function PredictPage() {
       console.error(err);
       if (err instanceof TypeError && err.message === "Failed to fetch") {
         setError(
-          "Could not connect to the prediction service. The server may be down or there could be a network (CORS) issue."
+          "Could not connect to the prediction service. Please check your connection."
         );
       } else {
-        setError(err.message || "Failed to get prediction. Please try again later.");
+        setError(
+          err.message || "Failed to get prediction. Please try again later."
+        );
       }
     } finally {
       setLoading(false);
@@ -84,29 +89,28 @@ export default function PredictPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-white text-black">
       <Sidebar />
       <div className="flex-1 flex flex-col">
         <Topbar />
         <main className="flex-1 p-6 lg:p-8">
           <div className="max-w-5xl mx-auto">
-            <h1 className="text-3xl font-bold text-slate-800 mb-6">
+            <h1 className="text-3xl font-bold mb-6">
               Energy Optimization Predictor
             </h1>
 
             {/* Main Content Card */}
-            <div className="bg-white p-6 lg:p-8 rounded-xl shadow-md space-y-8">
-              
+            <div className="bg-white p-6 lg:p-8 rounded-md border border-gray-300 space-y-8">
               {/* Form Section */}
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <h2 className="text-lg font-semibold text-slate-700 border-b pb-2 mb-4">
+                  <h2 className="text-lg font-semibold border-b pb-2 mb-4">
                     Machine Parameters
                   </h2>
                   <div className="grid md:grid-cols-3 gap-6">
                     {Object.keys(form).map((field) => (
                       <div key={field}>
-                        <label className="block text-sm font-medium text-gray-600 mb-1 capitalize">
+                        <label className="block text-sm font-medium text-gray-700 mb-1 capitalize">
                           {field.replaceAll("_", " ")}
                         </label>
                         <input
@@ -116,7 +120,7 @@ export default function PredictPage() {
                           name={field}
                           value={form[field]}
                           onChange={handleChange}
-                          className="w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition"
+                          className="w-full px-3 py-2 rounded-md border border-gray-400 focus:ring-1 focus:ring-black focus:border-black outline-none transition"
                         />
                       </div>
                     ))}
@@ -125,48 +129,57 @@ export default function PredictPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-3 rounded-lg shadow-sm transition-all duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="w-full bg-black hover:bg-gray-800 text-white font-semibold py-3 rounded-md transition-all duration-200 disabled:bg-gray-500 disabled:cursor-not-allowed"
                 >
-                  {loading ? "Predicting..." : "⚡ Predict Energy Usage"}
+                  {loading ? "Predicting..." : "Predict Energy Usage"}
                 </button>
               </form>
 
               {/* Error Message */}
               {error && (
-                <div className="text-center font-medium text-red-700 p-4 bg-red-100 border border-red-200 rounded-lg">
+                <div className="text-center font-medium text-red-700 p-4 bg-gray-100 border border-gray-300 rounded-md">
                   {error}
                 </div>
               )}
 
               {/* Results Section */}
               {result && (
-                <div className="space-y-8 border-t pt-8 animate-fadeIn">
-                  <h2 className="text-2xl font-bold text-center text-slate-800">
+                <div className="space-y-8 border-t pt-8">
+                  <h2 className="text-2xl font-bold text-center">
                     Prediction Results
                   </h2>
 
                   {/* Summary */}
                   <div className="grid sm:grid-cols-2 gap-6">
-                    <StatCard title="Current kWh/ton" value={result.current_kwh_per_ton} />
-                    <StatCard title="Predicted kWh/ton" value={result.predicted_kwh_per_ton} highlight />
+                    <StatCard
+                      title="Current kWh/ton"
+                      value={result.current_kwh_per_ton}
+                      highlight
+                    />
+                    <StatCard
+                      title="Predicted kWh/ton"
+                      value={result.predicted_kwh_per_ton}
+                      highlight
+                    />
                   </div>
 
                   {/* Recommendations */}
                   {result.recommendations?.length > 0 && (
                     <div>
-                      <h3 className="text-lg font-semibold mb-3 text-slate-700">
-                        ⚙️ Optimization Recommendations
+                      <h3 className="text-lg font-bold mb-3">
+                        Optimization Recommendations
                       </h3>
-                      <div className="border rounded-lg overflow-hidden">
+                      <div className="border border-gray-300 rounded-md">
                         {result.recommendations.map((r, i) => (
                           <div
                             key={i}
-                            className="p-4 flex justify-between items-center border-b last:border-b-0 bg-white"
+                            className="p-4 flex justify-between items-center border-b border-gray-300 last:border-b-0"
                           >
-                            <span className="font-medium capitalize text-gray-700">
-                              {r.param.replaceAll("_", " ")}: {r.from} → <span className="text-emerald-600 font-bold">{r.to}</span>
+                            <span className="font-medium capitalize">
+                              {r.param.replaceAll("_", " ")}: {r.from} →{" "}
+                              <span className="font-bold text-emerald-500">{r.to}</span>
                             </span>
-                            <span className="text-sm font-semibold text-gray-600 bg-slate-100 px-2 py-1 rounded">
+                            <span className="text-sm font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded">
                               Δ {r.expected_delta_kwh_per_ton} kWh/ton
                             </span>
                           </div>
@@ -178,29 +191,32 @@ export default function PredictPage() {
                   {/* Explainability */}
                   {result.explainability?.length > 0 && (
                     <div>
-                      <h3 className="text-lg font-semibold mb-3 text-slate-700">
-                        🧠 Feature Importance
+                      <h3 className="text-lg font-bold mb-3">
+                        Feature Importance
                       </h3>
-                      <div className="overflow-x-auto border rounded-lg">
+                      <div className="overflow-x-auto border border-gray-300 rounded-md">
                         <table className="min-w-full text-sm">
-                          <thead className="bg-slate-100 text-slate-600">
+                          <thead className="bg-gray-100 text-gray-700">
                             <tr>
-                              <th className="p-3 text-left font-semibold">Feature</th>
-                              <th className="p-3 text-left font-semibold">Value</th>
-                              <th className="p-3 text-left font-semibold">Impact</th>
+                              <th className="p-3 text-left font-semibold">
+                                Feature
+                              </th>
+                              <th className="p-3 text-left font-semibold">
+                                Value
+                              </th>
+                              <th className="p-3 text-left font-semibold">
+                                Impact
+                              </th>
                             </tr>
                           </thead>
                           <tbody className="bg-white">
                             {result.explainability.map((f, i) => (
-                              <tr
-                                key={i}
-                                className="border-t border-slate-200"
-                              >
-                                <td className="p-3 capitalize text-gray-700 font-medium">
+                              <tr key={i} className="border-t border-gray-300">
+                                <td className="p-3 capitalize font-medium">
                                   {f.feature.replaceAll("_", " ")}
                                 </td>
-                                <td className="p-3 text-gray-600">{f.value}</td>
-                                <td className="p-3 font-semibold text-emerald-600">
+                                <td className="p-3 text-gray-700">{f.value}</td>
+                                <td className="p-3 font-semibold text-black">
                                   {f.impact.toFixed(3)}
                                 </td>
                               </tr>
