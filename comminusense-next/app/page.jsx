@@ -7,7 +7,7 @@ import KpiCard from "@/components/ui/kpi-card";
 import LineChart from "@/components/charts/line-chart";
 import { useTelemetryStream } from "@/hooks/use-telemetry";
 
-export default function HomePage() {
+export default function OverviewPage() {
   return (
     <RequireAuth>
       <div className="min-h-dvh bg-background text-foreground flex">
@@ -22,7 +22,7 @@ export default function HomePage() {
 }
 
 function Content() {
-  const { latest, history } = useTelemetryStream({});
+  const { latest, history } = useTelemetryStream({}); // plant aggregate stream
   const kwhPerTon =
     latest?.metric?.power_kw && latest?.metric?.load_tph
       ? (latest.metric.power_kw / latest.metric.load_tph).toFixed(2)
@@ -51,6 +51,7 @@ function Content() {
           value={latest?.metric?.vibration?.toFixed?.(2) ?? "--"}
         />
       </section>
+
       <section className="grid grid-cols-1 gap-4">
         <div>
           <h2 className="mb-2 text-sm text-muted-foreground">
