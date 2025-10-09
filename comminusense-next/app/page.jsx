@@ -3,6 +3,7 @@
 import Sidebar from "@/components/layout/sidebar";
 import Topbar from "@/components/layout/topbar";
 import { RequireAuth } from "@/hooks/use-auth";
+import RequireRole from "@/components/auth/RoleCheck";
 import KpiCard from "@/components/ui/kpi-card";
 import LineChart from "@/components/charts/line-chart";
 import { useTelemetryStream } from "@/hooks/use-telemetry";
@@ -10,13 +11,15 @@ import { useTelemetryStream } from "@/hooks/use-telemetry";
 export default function HomePage() {
   return (
     <RequireAuth>
-      <div className="min-h-dvh bg-background text-foreground flex">
-        <Sidebar />
-        <div className="flex-1 flex flex-col">
-          <Topbar />
-          <Content />
+      <RequireRole>
+        <div className="min-h-dvh bg-background text-foreground flex">
+          <Sidebar />
+          <div className="flex-1 flex flex-col">
+            <Topbar />
+            <Content />
+          </div>
         </div>
-      </div>
+      </RequireRole>
     </RequireAuth>
   );
 }

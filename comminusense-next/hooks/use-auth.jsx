@@ -1,8 +1,9 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
-import { auth } from "@/components/auth/firebase"
+import { auth, db } from "@/components/auth/firebase"
 import { onAuthStateChanged } from "firebase/auth"
+import { doc, getDoc } from "firebase/firestore"
 import { getUserRoles, setUserRoles, hasPermission } from "@/lib/rbac"
 
 export function useAuth() {
@@ -11,11 +12,37 @@ export function useAuth() {
   const [roles, setRoles] = useState([])
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
+    const unsub = onAuthStateChanged(auth, async (u) => {
       setUser(u)
-      if (u?.email) {
-        const r = getUserRoles(u.email)
-        setRoles(r)
+      if (u?.email && u?.uid) {
+        try {
+          // Try to get role from Firestore first
+          const userDocRef = doc(db, "users", u.uid)
+          const userDocSnap = await getDoc(userDocRef)
+          
+          if (userDocSnap.exists()) {
+            const userData = userDocSnap.data()
+            if (userData.role) {
+              const firestoreRoles = [userData.role]
+              setRoles(firestoreRoles)
+              // Sync with local storage
+              setUserRoles(u.email, firestoreRoles)
+            } else {
+              // Fallback to local storage
+              const localRoles = getUserRoles(u.email)
+              setRoles(localRoles)
+            }
+          } else {
+            // Fallback to local storage if no Firestore document
+            const localRoles = getUserRoles(u.email)
+            setRoles(localRoles)
+          }
+        } catch (error) {
+          console.error("Error fetching user role from Firestore:", error)
+          // Fallback to local storage on error
+          const localRoles = getUserRoles(u.email)
+          setRoles(localRoles)
+        }
       } else {
         setRoles([])
       }
