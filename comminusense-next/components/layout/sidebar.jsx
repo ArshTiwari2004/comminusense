@@ -19,12 +19,12 @@ const links = [
     icon: Cpu,
     perm: "simulation.run",
   },
-  {
-    href: "/maintenance",
-    label: "Maintenance",
-    icon: Activity,
-    perm: "maintenance.create",
-  },
+  // {
+  //   href: "/maintenance",
+  //   label: "Maintenance",
+  //   icon: Activity,
+  //   perm: "maintenance.create",
+  // },
   { href: "/reports", label: "Reports", icon: Settings, perm: "report.export" },
   { href: "/admin", label: "Admin", icon: Users, perm: "user.manage" },
   { href: "/rbac-print", label: "RBAC", icon: Users, perm: "user.manage" },
